@@ -1,4 +1,4 @@
-package com.mint.habitus.domain.activity.infrastructure;
+package com.mint.habitus.infrastructure.activity;
 
 import com.mint.habitus.domain.activity.domain.Activity;
 import com.mint.habitus.domain.activity.domain.ActivityEffects;

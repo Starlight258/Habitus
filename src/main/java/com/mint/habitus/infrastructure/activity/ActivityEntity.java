@@ -1,4 +1,4 @@
-package com.mint.habitus.domain.activity.infrastructure;
+package com.mint.habitus.infrastructure.activity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

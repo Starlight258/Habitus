@@ -1,4 +1,4 @@
-package com.mint.habitus.domain.activity.infrastructure;
+package com.mint.habitus.infrastructure.activity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
