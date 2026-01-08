@@ -1,4 +1,4 @@
-package com.mint.habitus.domain.optimization.domain;
+package com.mint.habitus.domain.recommendation.domain;
 
 import com.mint.habitus.domain.activity.domain.Activity;
 import lombok.Builder;

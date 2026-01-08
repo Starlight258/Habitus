@@ -1,4 +1,4 @@
-package com.mint.habitus.domain.optimization.domain;
+package com.mint.habitus.domain.recommendation.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

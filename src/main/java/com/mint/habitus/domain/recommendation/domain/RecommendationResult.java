@@ -1,4 +1,4 @@
-package com.mint.habitus.domain.optimization.domain;
+package com.mint.habitus.domain.recommendation.domain;
 
 import com.mint.habitus.domain.capital.domain.CapitalType;
 import java.util.Collections;
@@ -13,15 +13,15 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class OptimizationResult {
+public class RecommendationResult {
 
     private final List<SelectedActivity> selectedActivities;
     private final int totalValue;
     private final int totalMinutes;
     private final int remainingMinutes;
 
-    public static OptimizationResult empty(int availableMinutes) {
-        return OptimizationResult.builder()
+    public static RecommendationResult empty(int availableMinutes) {
+        return RecommendationResult.builder()
                 .selectedActivities(Collections.emptyList())
                 .totalValue(0)
                 .totalMinutes(0)

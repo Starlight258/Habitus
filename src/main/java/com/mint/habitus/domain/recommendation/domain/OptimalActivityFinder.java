@@ -1,4 +1,4 @@
-package com.mint.habitus.domain.optimization.domain;
+package com.mint.habitus.domain.recommendation.domain;
 
 import com.mint.habitus.domain.activity.domain.Activity;
 import com.mint.habitus.domain.priority.domain.Priority;
@@ -18,13 +18,13 @@ public class OptimalActivityFinder {
     /**
      * 0-1 Knapsack DP로 최적 활동 조합 도출
      */
-    public OptimizationResult find(
+    public RecommendationResult find(
             List<Activity> activities,
             Priority priority,
             TimeConstraint timeConstraint
     ) {
         if (activities.isEmpty()) {
-            return OptimizationResult.empty(timeConstraint.getTotalMinutes());
+            return RecommendationResult.empty(timeConstraint.getTotalMinutes());
         }
 
         int n = activities.size();
@@ -108,7 +108,7 @@ public class OptimalActivityFinder {
     /**
      * 최적화 결과 생성
      */
-    private OptimizationResult buildResult(List<SelectedActivity> selected, int availableMinutes) {
+    private RecommendationResult buildResult(List<SelectedActivity> selected, int availableMinutes) {
         int totalValue = 0;
         int totalMinutes = 0;
 
@@ -124,7 +124,7 @@ public class OptimalActivityFinder {
                     .build());
         }
 
-        return OptimizationResult.builder()
+        return RecommendationResult.builder()
                 .selectedActivities(selectedActivities)
                 .totalValue(totalValue)
                 .totalMinutes(totalMinutes)
