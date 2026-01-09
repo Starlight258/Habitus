@@ -135,6 +135,10 @@ private List<SelectedActivity> backtrack(
 
 ## Performance Comparison
 
+<img width="1724" height="906" alt="image" src="https://github.com/user-attachments/assets/1c383b59-745a-4395-81f0-cbcaa599a96d" />
+
+<img width="1572" height="962" alt="image" src="https://github.com/user-attachments/assets/8de11645-c2cb-44e8-9695-b0d4f36c7d7b" />
+
 Current project scale: 5 activities, 10,080 minutes (1 week)
 
 - DP: 5 × 10,080 = 50,400 operations (0.017ms)
@@ -298,6 +302,10 @@ private List<SelectedActivity> backtrack(
 ```
 
 ## 성능 비교
+
+<img width="1724" height="906" alt="image" src="https://github.com/user-attachments/assets/1c383b59-745a-4395-81f0-cbcaa599a96d" />
+
+<img width="1572" height="962" alt="image" src="https://github.com/user-attachments/assets/8de11645-c2cb-44e8-9695-b0d4f36c7d7b" />
 
 현재 프로젝트: 활동 5개, 시간 10,080분(1주일)
 
