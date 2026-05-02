@@ -1,0 +1,143 @@
+name: Multi-Persona Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python and dependencies
+        run: |
+          python3 -m venv .claude/venv
+          .claude/venv/bin/pip install PyJWT cryptography requests -q
+
+      - name: Write PEM keys from secrets
+        run: |
+          echo "${{ secrets.LINUS_PEM }}"  > /tmp/linus.pem
+          echo "${{ secrets.FOWLER_PEM }}" > /tmp/fowler.pem
+          echo "${{ secrets.VOGELS_PEM }}" > /tmp/vogels.pem
+          chmod 600 /tmp/*.pem
+
+      - name: Generate personas.json
+        run: |
+          cat > .claude/personas.json << 'EOF'
+          {
+            "linus":  { "app_id": "3576024", "installation_id": "128879572", "pem_path": "/tmp/linus.pem" },
+            "fowler": { "app_id": "3576053", "installation_id": "128880139", "pem_path": "/tmp/fowler.pem" },
+            "vogels": { "app_id": "3576069", "installation_id": "128880656", "pem_path": "/tmp/vogels.pem" }
+          }
+          EOF
+
+      - name: Get PR diff
+        run: gh pr diff ${{ github.event.pull_request.number }} > /tmp/diff.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Round 1: initial reviews ─────────────────────────────────────────────
+      - name: Generate initial reviews
+        uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        with:
+          prompt: |
+            Read /tmp/diff.txt. Write exactly three review files below.
+
+            TOKEN HARD LIMIT: each file must be under 120 words. No preamble. No explanation outside the template.
+
+            ── /tmp/review_linus.md ──
+            You are Linus Torvalds. Blunt. Focus: bad taste, unnecessary complexity, wrong abstractions.
+            Template (use this exactly, nothing more):
+            ## 🐧 Linus Torvalds
+            **Verdict:** LGTM | Nitpick | Request Changes
+            - `file:line` — [issue] — [why bad taste]
+            (max 3 bullets; if nothing notable write "No bad taste detected.")
+
+            ── /tmp/review_fowler.md ──
+            You are Martin Fowler. Calm. Focus: code smells, testability, maintainability.
+            Template:
+            ## 📚 Martin Fowler
+            **Verdict:** LGTM | Nitpick | Request Changes
+            - `file:line` — [smell name] — [refactoring to apply]
+            (max 3 bullets; if nothing notable write "No smells detected.")
+
+            ── /tmp/review_vogels.md ──
+            You are Werner Vogels. Strategic. Focus: failure modes, missing timeouts/retries, observability.
+            Template:
+            ## ☁️ Werner Vogels
+            **Verdict:** LGTM | Nitpick | Request Changes
+            - [failure scenario] — [impact] — [fix]
+            (max 3 bullets; if nothing notable write "No resilience gaps detected.")
+
+      - name: Post initial reviews
+        run: |
+          PR=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          PY=.claude/venv/bin/python3
+          SC=.claude/post_as_persona.py
+
+          for persona in linus fowler vogels; do
+            FILE="/tmp/review_${persona}.md"
+            if [ -f "$FILE" ]; then
+              $PY $SC $persona $REPO $PR $FILE
+            else
+              echo "WARNING: $FILE not found, skipping $persona"
+            fi
+          done
+
+      # ── Round 2: discussion (Linus replies to Fowler) ────────────────────────
+      - name: Generate discussion replies
+        uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        with:
+          prompt: |
+            Read these three review files:
+            - /tmp/review_linus.md
+            - /tmp/review_fowler.md
+            - /tmp/review_vogels.md
+
+            TOKEN HARD LIMIT: each reply must be under 60 words. 1-2 sentences only.
+
+            ── /tmp/discuss_linus.md ──
+            Linus has read Fowler's review. He responds in 1-2 sentences (blunt, stay in character).
+            He can agree gruffly, push back on over-engineering, or point out something Fowler missed.
+            Format:
+            🐧 **Linus** (responding to Fowler):
+            [1-2 sentences]
+
+            ── /tmp/discuss_fowler.md ──
+            Fowler has read Linus's and Vogels's reviews. He responds in 1-2 sentences (diplomatic).
+            Format:
+            📚 **Martin** (in reply):
+            [1-2 sentences]
+
+            ── /tmp/discuss_vogels.md ──
+            Vogels has read both reviews. He adds one operational angle they missed, 1-2 sentences.
+            Format:
+            ☁️ **Werner** (on the operational side):
+            [1-2 sentences]
+
+      - name: Post discussion replies
+        run: |
+          PR=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          PY=.claude/venv/bin/python3
+          SC=.claude/post_as_persona.py
+
+          for persona in linus fowler vogels; do
+            FILE="/tmp/discuss_${persona}.md"
+            if [ -f "$FILE" ]; then
+              $PY $SC $persona $REPO $PR $FILE
+            else
+              echo "WARNING: $FILE not found, skipping ${persona} discussion"
+            fi
+          done
