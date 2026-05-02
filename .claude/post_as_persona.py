@@ -45,16 +45,29 @@ def get_installation_token(app_id, pem_path, installation_id):
     return resp.json()["token"]
 
 
-def get_pr_files(token, owner, repo, pr_number):
+def get_pr_info(token, owner, repo, pr_number):
+    """Return (list of filenames, latest commit sha)."""
     resp = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files",
+        f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}",
         headers={
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3+json",
         },
     )
     resp.raise_for_status()
-    return [f["filename"] for f in resp.json()]
+    pr = resp.json()
+    commit_sha = pr["head"]["sha"]
+
+    files_resp = requests.get(
+        f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github.v3+json",
+        },
+    )
+    files_resp.raise_for_status()
+    filenames = [f["filename"] for f in files_resp.json()]
+    return filenames, commit_sha
 
 
 def parse_file_line(body):
@@ -74,7 +87,7 @@ def find_full_path(filename, pr_files):
     return None
 
 
-def post_inline_comment(token, owner, repo, pr_number, path, line, body):
+def post_inline_comment(token, owner, repo, pr_number, commit_sha, path, line, body):
     """Post inline PR review comment. Returns (comment_id, html_url)."""
     resp = requests.post(
         f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/comments",
@@ -82,7 +95,7 @@ def post_inline_comment(token, owner, repo, pr_number, path, line, body):
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3+json",
         },
-        json={"body": body, "path": path, "line": line, "side": "RIGHT"},
+        json={"body": body, "commit_id": commit_sha, "path": path, "line": line, "side": "RIGHT"},
     )
     resp.raise_for_status()
     data = resp.json()
@@ -155,11 +168,11 @@ def main():
         comment_id, url = None, None
 
         if filename and line:
-            pr_files = get_pr_files(token, owner, repo_name, pr_number)
+            pr_files, commit_sha = get_pr_info(token, owner, repo_name, pr_number)
             full_path = find_full_path(filename, pr_files)
             if full_path:
                 try:
-                    comment_id, url = post_inline_comment(token, owner, repo_name, pr_number, full_path, line, body)
+                    comment_id, url = post_inline_comment(token, owner, repo_name, pr_number, commit_sha, full_path, line, body)
                 except Exception as e:
                     print(f"Warning: inline comment failed ({e}), falling back to review", file=sys.stderr)
 
