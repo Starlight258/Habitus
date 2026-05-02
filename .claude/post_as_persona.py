@@ -181,9 +181,13 @@ def main():
 
     print(url)
 
-    id_file = f"/tmp/comment_id_{persona}.txt"
-    with open(id_file, "w") as f:
+    with open(f"/tmp/comment_id_{persona}.txt", "w") as f:
         f.write(str(comment_id))
+
+    # Save whether this was inline or review (reply API only works for inline)
+    comment_type = "inline" if (not reply_to and filename and line and comment_id and "review" not in url.split("#")[-1]) else "review"
+    with open(f"/tmp/comment_type_{persona}.txt", "w") as f:
+        f.write(comment_type)
 
 
 if __name__ == "__main__":
