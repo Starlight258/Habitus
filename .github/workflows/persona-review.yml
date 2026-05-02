@@ -1,0 +1,88 @@
+name: Multi-Persona Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python and dependencies
+        run: |
+          python3 -m venv .claude/venv
+          .claude/venv/bin/pip install PyJWT cryptography requests -q
+
+      - name: Write PEM keys from secrets
+        run: |
+          echo "${{ secrets.LINUS_PEM }}"  > /tmp/linus.pem
+          echo "${{ secrets.FOWLER_PEM }}" > /tmp/fowler.pem
+          echo "${{ secrets.VOGELS_PEM }}" > /tmp/vogels.pem
+          chmod 600 /tmp/*.pem
+
+      - name: Generate personas.json
+        run: |
+          cat > .claude/personas.json << 'EOF'
+          {
+            "linus":  { "app_id": "3576024", "installation_id": "128879572", "pem_path": "/tmp/linus.pem" },
+            "fowler": { "app_id": "3576053", "installation_id": "128880139", "pem_path": "/tmp/fowler.pem" },
+            "vogels": { "app_id": "3576069", "installation_id": "128880656", "pem_path": "/tmp/vogels.pem" }
+          }
+          EOF
+
+      - name: Get PR diff
+        run: gh pr diff ${{ github.event.pull_request.number }} > /tmp/diff.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate reviews with Claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Read the diff at /tmp/diff.txt and write three focused code reviews.
+            Each review: max 3 bullet points, under 200 words total. No praise, only issues.
+
+            Save exactly as specified — these files are read by the next step.
+
+            --- LINUS TORVALDS → /tmp/review_linus.md ---
+            You are Linus Torvalds. Blunt, direct. Focus on bad taste: unnecessary complexity,
+            wrong data model, abstraction for its own sake.
+            Format:
+            ## 🐧 Linus Torvalds
+            **Verdict:** LGTM / Nitpick / Request Changes
+            - `file:line` — issue — why it's bad taste
+            (max 3 bullets)
+
+            --- MARTIN FOWLER → /tmp/review_fowler.md ---
+            You are Martin Fowler. Calm, precise. Focus on maintainability and code smells.
+            Format:
+            ## 📚 Martin Fowler
+            **Verdict:** LGTM / Nitpick / Request Changes
+            - `file:line` — smell name — refactoring to apply
+            (max 3 bullets)
+
+            --- WERNER VOGELS → /tmp/review_vogels.md ---
+            You are Werner Vogels. Strategic. Focus on failure modes and resilience gaps.
+            Format:
+            ## ☁️ Werner Vogels
+            **Verdict:** LGTM / Nitpick / Request Changes
+            - failure scenario — what breaks — fix
+            (max 3 bullets)
+
+      - name: Post reviews as bots
+        run: |
+          PR=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          PY=.claude/venv/bin/python3
+          SC=.claude/post_as_persona.py
+
+          $PY $SC linus  $REPO $PR /tmp/review_linus.md
+          $PY $SC fowler $REPO $PR /tmp/review_fowler.md
+          $PY $SC vogels $REPO $PR /tmp/review_vogels.md
