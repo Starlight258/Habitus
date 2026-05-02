@@ -46,7 +46,7 @@ jobs:
       - name: Generate initial reviews
         uses: anthropics/claude-code-action@v1
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         with:
           prompt: |
             Read /tmp/diff.txt. Write exactly three review files below.
@@ -97,7 +97,7 @@ jobs:
       - name: Generate discussion replies
         uses: anthropics/claude-code-action@v1
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         with:
           prompt: |
             Read these three review files:
