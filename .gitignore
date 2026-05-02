@@ -1,4 +1,7 @@
 HELP.md
+.claude/settings.local.json
+.claude/personas.json
+.claude/venv/
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
