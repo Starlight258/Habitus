@@ -1,0 +1,7 @@
+{
+  "name": "feature",
+  "description": "Interactive feature workflow: design → implement → PR",
+  "main": "main.py",
+  "args": ["[feature_description]"],
+  "icon": "✨"
+}

@@ -28,6 +28,22 @@ public class ActivityRepositoryImpl implements ActivityRepository {
     }
 
     @Override
+    public Optional<Activity> findByName(String name) {
+        return jpaRepository.findByName(name)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return jpaRepository.existsById(id);
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        return jpaRepository.existsByName(name);
+    }
+
+    @Override
     public Activity save(Activity activity) {
         ActivityEntity entity = mapper.toEntity(activity);
         ActivityEntity saved = jpaRepository.save(entity);

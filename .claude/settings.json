@@ -1,4 +1,9 @@
 {
   "theme": "dark",
-  "model": "sonnet"
+  "model": "sonnet",
+  "allowlist": [
+    "run bash commands",
+    "run gradle commands",
+    "use git commands"
+  ]
 }
