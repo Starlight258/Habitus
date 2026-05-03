@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class ActivityHistoryMapper {
 
     public ActivityHistory toDomain(ActivityHistoryEntity entity) {
-        return ActivityHistory.of(
+        return ActivityHistory.reconstitute(
                 entity.getId(),
                 entity.getActivityId(),
                 entity.getPerformedAt(),

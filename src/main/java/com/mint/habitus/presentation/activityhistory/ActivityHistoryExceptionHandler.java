@@ -25,6 +25,11 @@ public class ActivityHistoryExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", exception.getMessage());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException exception) {
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", exception.getMessage());
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadableJson(HttpMessageNotReadableException exception) {
         return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Request body is invalid");

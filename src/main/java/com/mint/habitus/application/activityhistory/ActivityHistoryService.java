@@ -20,15 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ActivityHistoryService {
 
-    private static final int MIN_DURATION_MINUTES = 1;
-    private static final int MAX_DURATION_MINUTES = 1440;
-    private static final int MAX_NOTES_LENGTH = 500;
-
     private final ActivityHistoryRepository activityHistoryRepository;
     private final ActivityRepository activityRepository;
 
-    public ActivityHistoryListResponse getHistories() {
-        List<ActivityHistoryResponse> histories = activityHistoryRepository.findAll().stream()
+    public ActivityHistoryListResponse getHistories(int page, int size) {
+        List<ActivityHistoryResponse> histories = activityHistoryRepository.findAll(page, size).stream()
                 .map(ActivityHistoryResponse::from)
                 .toList();
 
@@ -60,10 +56,7 @@ public class ActivityHistoryService {
 
     @Transactional
     public void deleteHistory(Long id) {
-        if (!activityHistoryRepository.existsById(id)) {
-            throw new ActivityHistoryNotFoundException(id);
-        }
-
+        findHistory(id);
         activityHistoryRepository.delete(id);
     }
 
@@ -106,7 +99,8 @@ public class ActivityHistoryService {
 
     private Integer validateDuration(Integer durationMinutes, List<String> errors) {
         if (durationMinutes != null
-                && (durationMinutes < MIN_DURATION_MINUTES || durationMinutes > MAX_DURATION_MINUTES)) {
+                && (durationMinutes < ActivityHistory.MIN_DURATION_MINUTES
+                        || durationMinutes > ActivityHistory.MAX_DURATION_MINUTES)) {
             errors.add("durationMinutes must be between 1 and 1440");
         }
 
@@ -114,7 +108,7 @@ public class ActivityHistoryService {
     }
 
     private String validateNotes(String notes, List<String> errors) {
-        if (notes != null && notes.length() > MAX_NOTES_LENGTH) {
+        if (notes != null && notes.length() > ActivityHistory.MAX_NOTES_LENGTH) {
             errors.add("notes must be at most 500 characters");
         }
 

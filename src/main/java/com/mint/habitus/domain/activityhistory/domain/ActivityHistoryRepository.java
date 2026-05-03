@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ActivityHistoryRepository {
 
-    List<ActivityHistory> findAll();
+    List<ActivityHistory> findAll(int page, int size);
 
     Optional<ActivityHistory> findById(Long id);
 

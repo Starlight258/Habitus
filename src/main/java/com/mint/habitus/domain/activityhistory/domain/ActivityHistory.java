@@ -9,9 +9,9 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ActivityHistory {
 
-    private static final int MIN_DURATION_MINUTES = 1;
-    private static final int MAX_DURATION_MINUTES = 1440;
-    private static final int MAX_NOTES_LENGTH = 500;
+    public static final int MIN_DURATION_MINUTES = 1;
+    public static final int MAX_DURATION_MINUTES = 1440;
+    public static final int MAX_NOTES_LENGTH = 500;
 
     private final Long id;
     private final Long activityId;
@@ -34,6 +34,12 @@ public class ActivityHistory {
                 durationMinutes,
                 notes
         );
+    }
+
+    /** Reconstitutes a persisted aggregate without applying creation-time defaults. */
+    public static ActivityHistory reconstitute(Long id, Long activityId, LocalDateTime performedAt,
+                                               Integer durationMinutes, String notes) {
+        return new ActivityHistory(id, activityId, performedAt, durationMinutes, notes);
     }
 
     private static void validate(Long activityId, Integer durationMinutes, String notes) {

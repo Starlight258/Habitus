@@ -89,7 +89,7 @@ class ActivityHistoryControllerTest {
                                 }
                                 """.formatted(activityId)))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", matchesPattern("/api/activity-histories/\\d+")))
+                .andExpect(header().string("Location", matchesPattern(".*\\/api\\/activity-histories\\/\\d+")))
                 .andExpect(jsonPath("$.activityId").value(activityId.intValue()))
                 .andExpect(jsonPath("$.performedAt").value("2024-01-15T10:30:00"))
                 .andExpect(jsonPath("$.durationMinutes").value(30))
@@ -170,7 +170,7 @@ class ActivityHistoryControllerTest {
         mockMvc.perform(get("/api/activity-histories/{id}", 999))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("ACTIVITY_HISTORY_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("Activity history not found"));
+                .andExpect(jsonPath("$.message").value("Activity history not found: id=999"));
     }
 
     @Test
@@ -188,7 +188,7 @@ class ActivityHistoryControllerTest {
     void deleteMissingHistoryReturnsNotFound() throws Exception {
         mockMvc.perform(delete("/api/activity-histories/{id}", 404))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Activity history not found"));
+                .andExpect(jsonPath("$.message").value("Activity history not found: id=404"));
     }
 
     private String createHistory() throws Exception {

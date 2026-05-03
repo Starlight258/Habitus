@@ -5,6 +5,7 @@ import com.mint.habitus.domain.activityhistory.domain.ActivityHistoryRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -15,8 +16,8 @@ public class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository 
     private final ActivityHistoryMapper mapper;
 
     @Override
-    public List<ActivityHistory> findAll() {
-        return jpaRepository.findAll().stream()
+    public List<ActivityHistory> findAll(int page, int size) {
+        return jpaRepository.findAll(PageRequest.of(page, size)).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

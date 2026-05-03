@@ -111,12 +111,12 @@ class ActivityHistoryServiceTest {
     @Test
     void getHistoriesReturnsAllHistories() {
         LocalDateTime performedAt = LocalDateTime.of(2024, 1, 15, 10, 30);
-        when(activityHistoryRepository.findAll()).thenReturn(List.of(
+        when(activityHistoryRepository.findAll(0, 20)).thenReturn(List.of(
                 ActivityHistory.of(1L, 10L, performedAt, 30, "first"),
                 ActivityHistory.of(2L, 11L, performedAt.plusDays(1), null, null)
         ));
 
-        assertThat(activityHistoryService.getHistories().getHistories())
+        assertThat(activityHistoryService.getHistories(0, 20).getHistories())
                 .hasSize(2)
                 .extracting(ActivityHistoryResponse::getId)
                 .containsExactly(1L, 2L);
@@ -128,16 +128,16 @@ class ActivityHistoryServiceTest {
 
         assertThatThrownBy(() -> activityHistoryService.getHistory(404L))
                 .isInstanceOf(ActivityHistoryNotFoundException.class)
-                .hasMessage("Activity history not found");
+                .hasMessage("Activity history not found: id=404");
     }
 
     @Test
     void deleteHistoryRejectsMissingId() {
-        when(activityHistoryRepository.existsById(404L)).thenReturn(false);
+        when(activityHistoryRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> activityHistoryService.deleteHistory(404L))
                 .isInstanceOf(ActivityHistoryNotFoundException.class)
-                .hasMessage("Activity history not found");
+                .hasMessage("Activity history not found: id=404");
 
         verify(activityHistoryRepository, never()).delete(any());
     }
