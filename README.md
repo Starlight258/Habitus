@@ -1,228 +1,158 @@
-# Habitus
+<div align="center">
 
-Habitus, the stepping stone for a leap in life
+<img src="docs/banner.png" alt="Habitus Banner" width="100%" />
 
-> Personal project to cultivate 7 Capitals of Habitus (Psychological, Cultural, Knowledge, Economic, Physical, Linguistic, Social) through daily habit tracking and growth tools.
+<br/>
 
-[![Java](https://img.shields.io/badge/Java-21-blue?logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
-[![Build](https://img.shields.io/badge/build-Gradle-blue?logo=gradle)](https://gradle.org/)
+[![Java](https://img.shields.io/badge/Java-21-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![JPA](https://img.shields.io/badge/Spring%20Data%20JPA-6DB33F?style=flat-square&logo=spring&logoColor=white)](https://spring.io/projects/spring-data-jpa)
+[![Gradle](https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white)](https://gradle.org/)
+[![Status](https://img.shields.io/badge/Status-In%20Progress-f59e0b?style=flat-square)]()
 
-[Lovable 프로토타입 보기 →](https://habitus-demo.lovable.app)
+<br/>
 
----
+**Habitus** is a personal growth platform that helps you cultivate 7 key life capitals through daily habit tracking, activity history, and intelligent recommendations.
 
-## 개요
+[Demo](https://habitus-demo.lovable.app) · [Technical Decisions](#technical-decisions) · [API Reference](#api-reference)
 
-Habitus는 일상의 활동을 통해 7가지 자본을 축적하고, 제한된 시간 안에서 최적의 활동 조합을 추천해주는 개인 성장 플랫폼입니다.
-
-### 7가지 자본
-
-| 자본 | 설명 |
-|------|------|
-| 신체자본 (Physical) | 체력, 건강, 신체 능력 |
-| 심리자본 (Mental) | 회복탄력성, 자기효능감, 정서 안정 |
-| 지식자본 (Knowledge) | 학습, 전문성, 사고력 |
-| 문화자본 (Cultural) | 예술, 취향, 교양 |
-| 언어자본 (Linguistic) | 언어 능력, 표현력, 소통 |
-| 사회자본 (Social) | 네트워크, 관계, 협력 |
-| 경제자본 (Economic) | 재무 능력, 자산, 경제적 판단력 |
+</div>
 
 ---
 
-## 기술 스택
+## Why Habitus?
 
-| 구분 | 기술 |
-|------|------|
-| Language | Java 21 |
-| Framework | Spring Boot 3.5.9 |
-| Persistence | Spring Data JPA, H2 (dev) / MySQL (prod) |
-| Build | Gradle |
-| Utilities | Lombok |
-| Test | JUnit 5, MockMvc |
+Most habit trackers just check boxes. Habitus thinks differently — every action you take compounds across **7 dimensions of your life**. A morning run isn't just exercise; it builds physical capital *and* mental capital. Reading a book grows knowledge *and* linguistic capital.
+
+Habitus quantifies that compounding effect and tells you where to invest your time next.
 
 ---
 
-## 아키텍처
+## 7 Capitals
 
-Clean Architecture 기반의 4계층 구조를 따릅니다.
+<div align="center">
+
+| 🧠 Psychological | 🏛 Cultural | 📚 Knowledge | 💰 Economic | 💪 Physical | 🗣 Linguistic | 🤝 Social |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Mindset, Resilience | Values, Arts | Learning, Curiosity | Financial Literacy | Health, Fitness | Communication | Relationships |
+
+> *True growth comes from balancing and compounding all 7 capitals.*
+
+</div>
+
+---
+
+## Features
+
+**Activity Templates** — Define reusable activities with capital effect scores. A 30-min workout might give +10 Physical, +3 Mental.
+
+**Activity History** — Log every time you perform an activity. Track when, how long, and how it felt.
+
+**Smart Recommendations** — Given your available time and capital priorities, Habitus finds the optimal activity combination using a dynamic programming algorithm.
+
+---
+
+## Tech Stack
 
 ```
-Presentation  ──▶  Application  ──▶  Domain  ◀──  Infrastructure
-  (Controller)       (Service)      (Aggregate)     (JPA Entity)
-                      (DTO)        (Repository      (Repository
-                   (Exception)      Interface)        Impl)
+Spring Boot 3.5.9   Java 21   Spring Data JPA   H2 / MySQL   Gradle   Lombok
 ```
 
+Architecture follows **Clean Architecture** — domain logic is framework-free, dependencies point inward.
+
 ```
-src/main/java/com/mint/habitus/
-├── presentation/
-│   ├── activity/              # 활동 템플릿 API
-│   └── activityhistory/       # 활동 이력 API
-├── application/
-│   ├── activity/              # 활동 서비스 + DTO
-│   ├── activityhistory/       # 이력 서비스 + DTO
-│   └── recommendation/        # 추천 서비스 + DTO
-├── domain/
-│   ├── activity/domain/       # Activity 애그리게이트
-│   ├── activityhistory/domain/# ActivityHistory 애그리게이트
-│   ├── capital/domain/        # CapitalType 열거형
-│   ├── priority/domain/       # Priority 도메인
-│   └── recommendation/domain/ # 추천 알고리즘 도메인
-└── infrastructure/
-    ├── activity/              # JPA 엔티티, 매퍼, 레포지토리 구현체
-    └── activityhistory/       # JPA 엔티티, 매퍼, 레포지토리 구현체
+Presentation  →  Application  →  Domain  ←  Infrastructure
 ```
 
 ---
 
-## API 명세
-
-### 활동 템플릿 `/api/activities`
-
-| Method | Endpoint | 설명 | 응답 |
-|--------|----------|------|------|
-| `GET` | `/api/activities` | 전체 활동 목록 조회 | `200` |
-| `GET` | `/api/activities/{id}` | 단건 조회 | `200` / `404` |
-| `POST` | `/api/activities` | 활동 생성 | `201` + Location |
-| `PUT` | `/api/activities/{id}` | 활동 수정 | `200` / `404` |
-| `DELETE` | `/api/activities/{id}` | 활동 삭제 | `204` / `404` |
+## API Reference
 
 <details>
-<summary>요청/응답 예시</summary>
+<summary><b>Activity Templates</b> — /api/activities</summary>
 
-**POST /api/activities**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/activities` | List all activities |
+| `GET` | `/api/activities/{id}` | Get activity |
+| `POST` | `/api/activities` | Create activity |
+| `PUT` | `/api/activities/{id}` | Update activity |
+| `DELETE` | `/api/activities/{id}` | Delete activity |
+
 ```json
+POST /api/activities
 {
-  "name": "아침 달리기",
-  "description": "30분 조깅",
+  "name": "Morning Run",
   "durationMinutes": 30,
   "cost": 0,
-  "effects": {
-    "PHYSICAL": 10,
-    "MENTAL": 5
-  }
+  "effects": { "PHYSICAL": 10, "MENTAL": 5 }
 }
 ```
 
-**응답**
-```json
-{
-  "id": 1,
-  "name": "아침 달리기",
-  "description": "30분 조깅",
-  "durationMinutes": 30,
-  "cost": 0,
-  "effects": {
-    "PHYSICAL": 10,
-    "MENTAL": 5
-  }
-}
-```
 </details>
 
----
-
-### 활동 이력 `/api/activity-histories`
-
-| Method | Endpoint | 설명 | 응답 |
-|--------|----------|------|------|
-| `GET` | `/api/activity-histories?page=0&size=20` | 이력 목록 조회 (페이지네이션, 최대 100) | `200` |
-| `GET` | `/api/activity-histories/{id}` | 단건 조회 | `200` / `404` |
-| `POST` | `/api/activity-histories` | 이력 기록 | `201` + Location |
-| `DELETE` | `/api/activity-histories/{id}` | 이력 삭제 | `204` / `404` |
-
 <details>
-<summary>요청/응답 예시</summary>
+<summary><b>Activity History</b> — /api/activity-histories</summary>
 
-**POST /api/activity-histories**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/activity-histories?page=0&size=20` | List history (paginated, max 100) |
+| `GET` | `/api/activity-histories/{id}` | Get record |
+| `POST` | `/api/activity-histories` | Log activity |
+| `DELETE` | `/api/activity-histories/{id}` | Delete record |
+
 ```json
+POST /api/activity-histories
 {
   "activityId": 1,
   "performedAt": "2024-01-15T10:30:00",
   "durationMinutes": 30,
-  "notes": "오늘 컨디션 좋았음"
+  "notes": "Felt great today"
 }
 ```
-> `performedAt` 생략 시 현재 시각으로 자동 설정됩니다.
 
-**응답**
-```json
-{
-  "id": 1,
-  "activityId": 1,
-  "performedAt": "2024-01-15T10:30:00",
-  "durationMinutes": 30,
-  "notes": "오늘 컨디션 좋았음"
-}
-```
 </details>
 
----
-
-### 활동 추천 `/api/activities/recommendation`
-
-제한된 시간 내에서 자본 우선순위에 따라 최적 활동 조합을 추천합니다.
-
-| Method | Endpoint | 설명 | 응답 |
-|--------|----------|------|------|
-| `POST` | `/api/activities/recommendation` | 주간 활동 추천 | `200` |
-
 <details>
-<summary>요청/응답 예시</summary>
+<summary><b>Recommendations</b> — /api/activities/recommendation</summary>
 
-**POST /api/activities/recommendation**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/activities/recommendation` | Get optimal activity plan |
+
 ```json
+POST /api/activities/recommendation
 {
   "userId": 1,
   "availableMinutes": 300,
-  "priorities": {
-    "PHYSICAL": 5,
-    "MENTAL": 3,
-    "KNOWLEDGE": 4
-  }
+  "priorities": { "PHYSICAL": 5, "KNOWLEDGE": 4, "MENTAL": 3 }
 }
 ```
+
 </details>
 
 ---
 
-### 에러 응답 형식
-
-```json
-{
-  "code": "ACTIVITY_HISTORY_NOT_FOUND",
-  "message": "Activity history not found: id=42",
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-```
-
-| 코드 | HTTP | 상황 |
-|------|------|------|
-| `VALIDATION_FAILED` | 400 | 입력값 검증 실패 |
-| `INVALID_REQUEST` | 400 | JSON 파싱 오류 |
-| `ACTIVITY_NOT_FOUND` | 404 | 활동 없음 |
-| `ACTIVITY_HISTORY_NOT_FOUND` | 404 | 이력 없음 |
-| `ACTIVITY_NAME_ALREADY_EXISTS` | 409 | 이름 중복 |
-| `INTERNAL_SERVER_ERROR` | 500 | 서버 오류 |
-
----
-
-## 실행 방법
+## Quick Start
 
 ```bash
-# 빌드
-./gradlew build
+git clone https://github.com/Starlight258/Habitus.git
+cd Habitus/classic-freighter
 
-# 실행 (H2 인메모리 DB, 기본 포트 8080)
-./gradlew bootRun
-
-# 테스트
-./gradlew test
+./gradlew bootRun      # runs on :8080 with H2 in-memory DB
+./gradlew test         # run all tests
 ```
 
 ---
 
-## 기술적 결정 기록
+## Technical Decisions
 
-- [활동 추천 알고리즘 선택 과정 — Greedy → DP](docs/choosing-the-right-algorithm-for-activity-recommendations.md)
+- [Choosing the Right Algorithm for Activity Recommendations — Greedy → DP](docs/choosing-the-right-algorithm-for-activity-recommendations.md)
+
+---
+
+<div align="center">
+
+Made with ❤️ for growth and a better life.
+
+</div>
