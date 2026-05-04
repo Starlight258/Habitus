@@ -1,6 +1,6 @@
 # Habitus
 
-> **삶의 도약을 위한 디딤돌** — 7가지 자본을 균형 있게 성장시키는 습관 관리 서비스
+갓생도 데이터가 필요해
 
 [![Java](https://img.shields.io/badge/Java-21-blue?logo=openjdk)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
