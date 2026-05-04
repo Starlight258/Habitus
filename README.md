@@ -1,6 +1,8 @@
 # Habitus
 
-갓생도 데이터가 필요해
+Habitus, the stepping stone for a leap in life
+
+> Personal project to cultivate 7 Capitals of Habitus (Psychological, Cultural, Knowledge, Economic, Physical, Linguistic, Social) through daily habit tracking and growth tools.
 
 [![Java](https://img.shields.io/badge/Java-21-blue?logo=openjdk)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
