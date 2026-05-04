@@ -3,7 +3,8 @@ package com.mint.habitus.presentation.activity;
 import com.mint.habitus.application.activity.ActivityNotFoundException;
 import com.mint.habitus.application.activity.ActivityValidationException;
 import com.mint.habitus.application.activity.DuplicateActivityNameException;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +47,7 @@ public class ActivityExceptionHandler {
                 .body(ErrorResponse.builder()
                         .code(code)
                         .message(message)
-                        .timestamp(LocalDateTime.now())
+                        .timestamp(OffsetDateTime.now(ZoneOffset.UTC))
                         .build());
     }
 }
