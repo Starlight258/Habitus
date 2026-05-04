@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -17,7 +18,7 @@ public class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository 
 
     @Override
     public List<ActivityHistory> findAll(int page, int size) {
-        return jpaRepository.findAll(PageRequest.of(page, size)).stream()
+        return jpaRepository.findAll(PageRequest.of(page, size, Sort.by("id").ascending())).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

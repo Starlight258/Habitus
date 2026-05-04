@@ -3,7 +3,8 @@ package com.mint.habitus.presentation.activityhistory;
 import com.mint.habitus.application.activityhistory.exception.ActivityHistoryNotFoundException;
 import com.mint.habitus.application.activityhistory.exception.ActivityHistoryValidationException;
 import com.mint.habitus.presentation.activity.ErrorResponse;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +47,7 @@ public class ActivityHistoryExceptionHandler {
                 .body(ErrorResponse.builder()
                         .code(code)
                         .message(message)
-                        .timestamp(LocalDateTime.now())
+                        .timestamp(OffsetDateTime.now(ZoneOffset.UTC))
                         .build());
     }
 }

@@ -20,11 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ActivityHistoryService {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final ActivityHistoryRepository activityHistoryRepository;
     private final ActivityRepository activityRepository;
 
     public ActivityHistoryListResponse getHistories(int page, int size) {
-        List<ActivityHistoryResponse> histories = activityHistoryRepository.findAll(page, size).stream()
+        List<ActivityHistoryResponse> histories = activityHistoryRepository.findAll(page, Math.min(size, MAX_PAGE_SIZE)).stream()
                 .map(ActivityHistoryResponse::from)
                 .toList();
 
