@@ -186,8 +186,17 @@ def main():
                 print(url)
                 if first_inline_id is None:
                     first_inline_id = cid
+            except requests.HTTPError as e:
+                status = e.response.status_code
+                if status in (401, 403):
+                    print(f"Fatal: auth error posting {filename}:{line} — check persona token", file=sys.stderr)
+                    sys.exit(1)
+                if status == 429:
+                    print(f"Fatal: rate limited posting {filename}:{line} — retry after a minute", file=sys.stderr)
+                    sys.exit(1)
+                print(f"Warning: skipping {filename}:{line} (HTTP {status})", file=sys.stderr)
             except Exception as e:
-                print(f"Warning: inline comment failed for {filename}:{line} ({e})", file=sys.stderr)
+                print(f"Warning: skipping {filename}:{line} ({e})", file=sys.stderr)
 
     if first_inline_id:
         with open(f"/tmp/comment_id_{persona}.txt", "w") as f:
