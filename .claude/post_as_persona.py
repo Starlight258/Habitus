@@ -5,11 +5,10 @@ Usage:
     post_as_persona.py <persona> <owner/repo> <pr_number> <body_file>
     post_as_persona.py <persona> <owner/repo> <pr_number> <body_file> --reply-to <comment_id>
 
-If --reply-to is provided, posts as a threaded reply to that inline comment.
-Otherwise, posts as an inline PR comment on the first `file:line` found in the body.
-Falls back to a plain PR review comment if no file:line is found or line is not in diff.
+Posts each file:line bullet as a separate inline PR review comment.
+Falls back to a plain PR review comment if no file:line bullets are found or all inline posts fail.
 
-Saves the comment ID to /tmp/comment_id_<persona>.txt for later use in replies.
+Saves the first inline comment ID to /tmp/comment_id_<persona>.txt for later use in replies.
 """
 
 import sys
@@ -70,12 +69,23 @@ def get_pr_info(token, owner, repo, pr_number):
     return filenames, commit_sha
 
 
-def parse_file_line(body):
-    """Extract first `file:line` reference from review body."""
-    match = re.search(r'`([^`\s:]+\.(?:java|kt|py|ts|js|go|rs)):(\d+)`', body)
-    if match:
-        return match.group(1), int(match.group(2))
-    return None, None
+def get_header(body):
+    """Extract persona header + verdict line from review body."""
+    match = re.match(r'(##[^\n]+\n\*\*Verdict:\*\*[^\n]+)', body)
+    return match.group(1).strip() if match else ""
+
+
+def parse_bullets(body):
+    """Parse all file:line bullets. Returns list of (filename, line, bullet_text)."""
+    bullets = []
+    # Match: `- `filename.ext:LINE` — description`
+    pattern = re.compile(r'-\s+`([^`\s:]+\.\w+):(\d+)`\s*[—\-]+\s*(.+?)(?=\n\s*-\s+`|\Z)', re.DOTALL)
+    for m in pattern.finditer(body):
+        filename = m.group(1)
+        line = int(m.group(2))
+        text = m.group(3).strip()
+        bullets.append((filename, line, text))
+    return bullets
 
 
 def find_full_path(filename, pr_files):
@@ -88,7 +98,7 @@ def find_full_path(filename, pr_files):
 
 
 def post_inline_comment(token, owner, repo, pr_number, commit_sha, path, line, body):
-    """Post inline PR review comment. Returns (comment_id, html_url)."""
+    """Post a single inline PR review comment. Returns (comment_id, html_url)."""
     resp = requests.post(
         f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/comments",
         headers={
@@ -163,31 +173,46 @@ def main():
 
     if reply_to:
         comment_id, url = post_reply(token, owner, repo_name, pr_number, reply_to, body)
-    else:
-        filename, line = parse_file_line(body)
-        comment_id, url = None, None
+        print(url)
+        with open(f"/tmp/comment_id_{persona}.txt", "w") as f:
+            f.write(str(comment_id))
+        return
 
-        if filename and line:
-            pr_files, commit_sha = get_pr_info(token, owner, repo_name, pr_number)
+    # Post each bullet as a separate inline comment
+    bullets = parse_bullets(body)
+    header = get_header(body)
+    first_inline_id = None
+    first_url = None
+
+    if bullets:
+        pr_files, commit_sha = get_pr_info(token, owner, repo_name, pr_number)
+        for filename, line, text in bullets:
             full_path = find_full_path(filename, pr_files)
-            if full_path:
-                try:
-                    comment_id, url = post_inline_comment(token, owner, repo_name, pr_number, commit_sha, full_path, line, body)
-                except Exception as e:
-                    print(f"Warning: inline comment failed ({e}), falling back to review", file=sys.stderr)
+            if not full_path:
+                print(f"Warning: {filename} not found in PR files, skipping", file=sys.stderr)
+                continue
+            comment_body = f"{header}\n\n`{filename}:{line}` — {text}" if header else f"`{filename}:{line}` — {text}"
+            try:
+                cid, url = post_inline_comment(token, owner, repo_name, pr_number, commit_sha, full_path, line, comment_body)
+                print(url)
+                if first_inline_id is None:
+                    first_inline_id = cid
+                    first_url = url
+            except Exception as e:
+                print(f"Warning: inline comment failed for {filename}:{line} ({e})", file=sys.stderr)
 
-        if not comment_id:
-            comment_id, url = post_review(token, owner, repo_name, pr_number, body)
+    if first_inline_id:
+        with open(f"/tmp/comment_id_{persona}.txt", "w") as f:
+            f.write(str(first_inline_id))
+        return
 
+    # Fallback: post as plain review
+    comment_id, url = post_review(token, owner, repo_name, pr_number, body)
     print(url)
-
     with open(f"/tmp/comment_id_{persona}.txt", "w") as f:
         f.write(str(comment_id))
-
-    # Save whether this was inline or review (reply API only works for inline)
-    comment_type = "inline" if (not reply_to and filename and line and comment_id and "review" not in url.split("#")[-1]) else "review"
     with open(f"/tmp/comment_type_{persona}.txt", "w") as f:
-        f.write(comment_type)
+        f.write("review")
 
 
 if __name__ == "__main__":

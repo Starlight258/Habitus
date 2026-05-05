@@ -2,8 +2,6 @@
 
 Explain the implemented code diff and prioritize what reviewers should inspect.
 
-Apply the reusable instructions in `.claude/skills/diff-review/SKILL.md`.
-
 ## Input
 
 `$ARGUMENTS` is optional.
@@ -44,7 +42,7 @@ This command is for local review and reviewer handoff. Do not post comments to G
    - For a PR number:
 
      ```bash
-     gh pr diff "$ARGUMENTS"
+     gh pr diff "$(echo "$ARGUMENTS" | tr -cd '0-9')"
      ```
 
 3. If the diff is large, first summarize by file and changed line count, then inspect only the meaningful hunks needed to identify behavior and risk.

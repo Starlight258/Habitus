@@ -1,6 +1,6 @@
 # Agent Guide
 
-This repository uses this file as the model-neutral agent guide. Claude-specific slash commands live under `.claude/`, while Codex and other coding agents should use this document for shared project rules.
+This repository uses this file as the shared agent guide. Claude-specific slash commands live under `.claude/`; Codex and other agents should use this document for shared project rules.
 
 ## Project
 
@@ -25,10 +25,10 @@ Keep domain logic framework-free. Spring, JPA, HTTP DTOs, and persistence mappin
 
 ```bash
 ./gradlew test
-./gradlew bootRun
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
-Use `./gradlew test` as the default verification command after code changes. If the change is narrow and tests are expensive or unavailable, state exactly what was and was not run.
+Use `./gradlew test` as the default verification command after code changes. If the change is narrow and specific tests cover it, you may run only those — but state exactly which tests were run and which were skipped.
 
 ## Existing Claude Workflows
 
